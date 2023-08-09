@@ -37,7 +37,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore /p:Version=$VERSION
+      run: dotnet build --configuration Release --no-restore /p:Version=$VERSION
 
     - name: Pack NuGet Packages
       run: dotnet pack --configuration Release --output nupkgs --no-restore --no-build /p:PackageVersion=$VERSION
