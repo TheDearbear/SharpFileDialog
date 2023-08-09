@@ -4,6 +4,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <Authors>TheDearbear</Authors>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/TheDearbear/SharpFileDialog</RepositoryUrl>
+    <PackageTags>dialog;csharp;files</PackageTags>
+    <Description>Rewrite of nativefiledailog for C#</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +18,17 @@
 		  <PrivateAssets>all</PrivateAssets>
 	  </PackageReference>
 	  <PackageReference Include="GtkSharp" Version="3.24.24.95" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
