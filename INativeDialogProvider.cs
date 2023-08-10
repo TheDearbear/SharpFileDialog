@@ -1,15 +1,16 @@
-﻿namespace SharpFileDialog;
-
-internal interface INativeDialogProvider
+﻿namespace SharpFileDialog
 {
-    bool CurrentPlatformSupported { get; }
-    int Priority { get; }
+    internal interface INativeDialogProvider
+    {
+        bool CurrentPlatformSupported { get; }
+        int Priority { get; }
 
-    bool OpenDialog(NativeFileDialog.Filter[]? filters, string? defaultPath, out string? outPath);
+        bool OpenDialog(NativeFileDialog.Filter[]? filters, string? defaultPath, out string? outPath);
 
-    bool OpenDialogMultiple(NativeFileDialog.Filter[]? filters, string? defaultPath, out string[]? outPaths);
+        bool OpenDialogMultiple(NativeFileDialog.Filter[]? filters, string? defaultPath, out string[]? outPaths);
 
-    bool SaveDialog(NativeFileDialog.Filter[]? filters, string? defaultPath, out string? outPath);
+        bool SaveDialog(NativeFileDialog.Filter[]? filters, string? defaultPath, out string? outPath);
 
-    bool PickFolder(string? defaultPath, out string? outPath);
+        bool PickFolder(string? defaultPath, out string? outPath);
+    }
 }
