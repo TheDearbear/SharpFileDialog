@@ -1,6 +1,7 @@
 ﻿using Gdk;
 using Gtk;
 using System;
+using System.Diagnostics;
 
 namespace SharpFileDialog.NativeProviders
 {
@@ -100,11 +101,21 @@ namespace SharpFileDialog.NativeProviders
 
         static bool InitCheck()
         {
-            string[] args = Environment.GetCommandLineArgs();
-            string name = args.Length > 0 ? args[0] : string.Empty;
-            string[] gtkArgs = Array.Empty<string>();
+            try
+            {
+                string[] args = Environment.GetCommandLineArgs();
+                string name = args.Length > 0 ? args[0] : string.Empty;
+                string[] gtkArgs = Array.Empty<string>();
 
-            return Application.InitCheck(name, ref gtkArgs);
+                return Application.InitCheck(name, ref gtkArgs);
+            }
+            catch (Exception e)
+            {
+#if DEBUG
+                Debug.WriteLine(e);
+#endif
+                return false;
+            }
         }
 
         static void SetDefaultPath(IFileChooser widget, string path)

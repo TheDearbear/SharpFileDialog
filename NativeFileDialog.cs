@@ -24,14 +24,18 @@ namespace SharpFileDialog
 
             foreach (Type nativeProvider in nativeProviders)
             {
-                if (Activator.CreateInstance(nativeProvider) is INativeDialogProvider provider)
+                try
                 {
-                    if (!provider.CurrentPlatformSupported)
-                        continue;
+                    if (Activator.CreateInstance(nativeProvider) is INativeDialogProvider provider)
+                    {
+                        if (!provider.CurrentPlatformSupported)
+                            continue;
 
-                    if (_provider is null || _provider.Priority < provider.Priority)
-                        _provider = provider;
+                        if (_provider is null || _provider.Priority < provider.Priority)
+                            _provider = provider;
+                    }
                 }
+                catch { }
             }
         }
 
