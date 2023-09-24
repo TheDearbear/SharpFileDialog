@@ -11,7 +11,7 @@ using SharpFileDialog;
     
 class Example
 {
-	void Main()
+	static void Main()
 	{
 		if (NativeFileDialog.PickFolder(null, out string? folder))
 			Console.WriteLine("Selected Folder: " + folder);
