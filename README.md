@@ -27,5 +27,5 @@ Currently supported dialog providers:
   - GTK
 
 ## Adding your own provider
-You can use custom provider by setting property 'NativeFileDialog.Provider' or bundled providers with method 'NativeFileDialog.SetDefaultProvider()'.  
+You can use custom provider by setting property `NativeFileDialog.Provider` or bundled providers with method `NativeFileDialog.SetDefaultProvider()`.  
 To create custom provider create new class, inherit interface `INativeDialogProvider` and add implementations.
