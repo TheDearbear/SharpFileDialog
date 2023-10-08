@@ -1,8 +1,9 @@
 ﻿namespace SharpFileDialog
 {
-    internal interface INativeDialogProvider
+    public interface INativeDialogProvider
     {
         bool CurrentPlatformSupported { get; }
+
         int Priority { get; }
 
         bool OpenDialog(NativeFileDialog.Filter[]? filters, string? defaultPath, out string? outPath);

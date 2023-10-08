@@ -5,6 +5,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.Shell.Common;
 using System.Runtime.InteropServices;
+using System.Linq;
 
 #if NET6_0_OR_GREATER
 using System.Runtime.Versioning;
@@ -15,7 +16,7 @@ namespace SharpFileDialog.NativeProviders
 #if NET6_0_OR_GREATER
     [SupportedOSPlatform("windows6.0.6000")]
 #endif
-    internal class WinAPIDialogProvider : INativeDialogProvider
+    internal sealed class WinAPIDialogProvider : INativeDialogProvider
     {
         public bool CurrentPlatformSupported => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
             (Environment.OSVersion.Version.Major > 6 ||
@@ -36,9 +37,7 @@ namespace SharpFileDialog.NativeProviders
                 goto end;
             }
 
-            if (filters is not null)
-                AddFiltersToDialog(dialog, filters);
-
+            AddFiltersToDialog(dialog, filters);
             if (defaultPath is not null)
                 SetDefaultPath(dialog, defaultPath);
 
@@ -100,9 +99,7 @@ namespace SharpFileDialog.NativeProviders
                 goto end;
             }
 
-            if (filters is not null)
-                AddFiltersToDialog(dialog, filters);
-
+            AddFiltersToDialog(dialog, filters);
             if (defaultPath is not null)
                 SetDefaultPath(dialog, defaultPath);
 
@@ -237,9 +234,7 @@ namespace SharpFileDialog.NativeProviders
                 goto end;
             }
 
-            if (filters is not null)
-                AddFiltersToDialog(dialog, filters);
-
+            AddFiltersToDialog(dialog, filters);
             if (defaultPath is not null)
                 SetDefaultPath(dialog, defaultPath);
 
@@ -275,6 +270,13 @@ namespace SharpFileDialog.NativeProviders
             Marshal.FinalReleaseComObject(shellItem);
 
         end:
+            if (outPath is not null && filters is not null)
+            {
+                dialog.GetFileTypeIndex(out uint fileType);
+
+                outPath = AddExtension(outPath, unchecked((int)fileType) - 1, filters);
+            }
+
             if (dialog is not null)
                 Marshal.FinalReleaseComObject(dialog);
 
@@ -287,7 +289,7 @@ namespace SharpFileDialog.NativeProviders
             return outPath is not null;
         }
 
-        private static void SetDefaultPath(IFileDialog dialog, string defaultPath)
+        static void SetDefaultPath(IFileDialog dialog, string defaultPath)
         {
             if (string.IsNullOrWhiteSpace(defaultPath))
                 return;
@@ -307,42 +309,41 @@ namespace SharpFileDialog.NativeProviders
             Marshal.FinalReleaseComObject(folder);
         }
 
-        private static void AddFiltersToDialog(IFileDialog dialog, NativeFileDialog.Filter[] filters)
+        static void AddFiltersToDialog(IFileDialog dialog, NativeFileDialog.Filter[]? filters)
         {
-            if (filters.Length == 0) return;
-
             const string WILDCARD_NAME = "Any File";
             const string WILDCARD = "*.*";
 
             // filter.Length plus 1 because we hardcode the *.* wildcard after the while loop
-            COMDLG_FILTERSPEC[] specList = new COMDLG_FILTERSPEC[filters.Length + 1];
+            COMDLG_FILTERSPEC[] specList = new COMDLG_FILTERSPEC[(filters?.Length ?? 0) + 1];
 
-            for (int i = 0; i < filters.Length; i++)
-            {
-                string filter = "*." + string.Join(";*.", filters[i].Extensions);
-
-                unsafe
+            if (filters is not null)
+                for (int i = 0; i < filters.Length; i++)
                 {
-                    fixed (char* pFilter = filter)
-                        specList[i].pszSpec = new PCWSTR(pFilter);
-                    fixed (char* pName = filters[i].Name)
-                        specList[i].pszName = new PCWSTR(pName);
+                    string filter = "*." + string.Join(";*.", filters[i].Extensions);
+
+                    unsafe
+                    {
+                        fixed (char* pFilter = filter)
+                            specList[i].pszSpec = new PCWSTR(pFilter);
+                        fixed (char* pName = filters[i].Name)
+                            specList[i].pszName = new PCWSTR(pName);
+                    }
                 }
-            }
 
             // Add wildcard
             unsafe
             {
                 fixed (char* pWildcard = WILDCARD)
-                    specList[filters.Length].pszSpec = new PCWSTR(pWildcard);
+                    specList[specList.Length - 1].pszSpec = new PCWSTR(pWildcard);
                 fixed (char* pWildcardName = WILDCARD_NAME)
-                    specList[filters.Length].pszName = new PCWSTR(pWildcardName);
+                    specList[specList.Length - 1].pszName = new PCWSTR(pWildcardName);
             }
 
             dialog.SetFileTypes(specList);
         }
 
-        private static HRESULT InitializeCOM()
+        static HRESULT InitializeCOM()
         {
             const int RPC_E_CHANGED_MODE = -2147417850;
 
@@ -356,11 +357,27 @@ namespace SharpFileDialog.NativeProviders
         }
 
         /// <inheritdoc cref="PInvoke.SHCreateItemFromParsingName(string, IBindCtx, in Guid, out object)"/>
-        private static HRESULT SHCreateItemFromParsingName<T>(string pszPath, IBindCtx? pbc, out T item) where T : class
+        static HRESULT SHCreateItemFromParsingName<T>(string pszPath, IBindCtx? pbc, out T item) where T : class
         {
             HRESULT result = PInvoke.SHCreateItemFromParsingName(pszPath, pbc, typeof(T).GUID, out object ppv);
             item = (T)ppv;
             return result;
+        }
+
+        static string AddExtension(string path, int index, params NativeFileDialog.Filter[] filters)
+        {
+            if (index >= filters.Length)
+                return path;
+
+            foreach (var filter in filters)
+                foreach (var extension in filter.Extensions)
+                    if (path.EndsWith(extension.Trim()))
+                        return path;
+
+            if (!filters.Any() || !filters.First().Extensions.Any() || index == -1)
+                return path;
+
+            return path + '.' + filters[index].Extensions.First().Trim();
         }
     }
 }

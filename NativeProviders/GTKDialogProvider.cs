@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace SharpFileDialog.NativeProviders
 {
-    internal class GTKDialogProvider : INativeDialogProvider
+    internal sealed class GTKDialogProvider : INativeDialogProvider
     {
         public bool CurrentPlatformSupported => InitCheck();
         public int Priority => 10;
@@ -17,8 +17,7 @@ namespace SharpFileDialog.NativeProviders
             var dialog = new FileChooserNative("Open", null, FileChooserAction.Open, "_Open", "_Cancel");
 
             // Build the filter list
-            if (filters is not null)
-                AddFiltersToDialog(dialog, filters);
+            AddFiltersToDialog(dialog, filters);
 
             // Set the default path
             if (defaultPath is not null)
@@ -39,8 +38,7 @@ namespace SharpFileDialog.NativeProviders
             };
 
             // Build the filter list
-            if (filters is not null)
-                AddFiltersToDialog(dialog, filters);
+            AddFiltersToDialog(dialog, filters);
 
             // Set the default path
             if (defaultPath is not null)
@@ -61,8 +59,7 @@ namespace SharpFileDialog.NativeProviders
             };
 
             // Build the filter list
-            if (filters is not null)
-                AddFiltersToDialog(dialog, filters);
+            AddFiltersToDialog(dialog, filters);
 
             // Set the default path
             if (defaultPath is not null)
@@ -126,23 +123,21 @@ namespace SharpFileDialog.NativeProviders
             widget.SetCurrentFolder(path);
         }
 
-        static void AddFiltersToDialog(IFileChooser widget, NativeFileDialog.Filter[] filters)
+        static void AddFiltersToDialog(IFileChooser widget, NativeFileDialog.Filter[]? filters)
         {
-            if (filters.Length == 0)
-                return;
-
-            foreach (var filter in filters)
-            {
-                var fileFilter = new FileFilter
+            if (filters is not null)
+                foreach (var filter in filters)
                 {
-                    Name = filter.Name
-                };
+                    var fileFilter = new FileFilter
+                    {
+                        Name = filter.Name
+                    };
 
-                foreach (var extension in filter.Extensions)
-                    fileFilter.AddPattern("*." + extension);
+                    foreach (var extension in filter.Extensions)
+                        fileFilter.AddPattern("*." + extension);
 
-                widget.AddFilter(fileFilter);
-            }
+                    widget.AddFilter(fileFilter);
+                }
 
             // always append a wildcard option to the end
             var wildcard = new FileFilter { Name = "Any File" };

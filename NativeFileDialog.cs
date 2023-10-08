@@ -13,12 +13,16 @@ namespace SharpFileDialog
 {
     public static class NativeFileDialog
     {
-        public static bool CurrentPlatformSupported => _provider is not null;
+        public static bool CurrentPlatformSupported => Provider is not null;
 
-        static readonly INativeDialogProvider? _provider;
+        public static INativeDialogProvider? Provider { get; set; }
 
-        static NativeFileDialog()
+        static bool _providerSearched = false;
+
+        public static bool SetDefaultProvider()
         {
+            _providerSearched = true;
+            var previousProvider = Provider;
             Assembly currentAssembly = Assembly.GetExecutingAssembly();
             IEnumerable<Type> nativeProviders = currentAssembly.GetTypes().Where(type => type.GetInterface(nameof(INativeDialogProvider)) is not null);
 
@@ -31,12 +35,14 @@ namespace SharpFileDialog
                         if (!provider.CurrentPlatformSupported)
                             continue;
 
-                        if (_provider is null || _provider.Priority < provider.Priority)
-                            _provider = provider;
+                        if (Provider is null || Provider.Priority < provider.Priority)
+                            Provider = provider;
                     }
                 }
                 catch { }
             }
+
+            return Provider != previousProvider;
         }
 
 #if USE_NOTNULLWHEN
@@ -83,12 +89,15 @@ namespace SharpFileDialog
             return provider.PickFolder(defaultPath, out outPath);
         }
 
-        private static INativeDialogProvider EnsureProviderAvailable()
+        static INativeDialogProvider EnsureProviderAvailable()
         {
-            if (_provider is null)
+            if (!_providerSearched)
+                SetDefaultProvider();
+
+            if (Provider is null)
                 throw new PlatformNotSupportedException("Dialog provider for current platform is not available!");
 
-            return _provider;
+            return Provider;
         }
 
         public struct Filter

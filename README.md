@@ -23,9 +23,9 @@ class Example
 
 ## Providers
 Currently supported dialog providers:
-  - WinAPI
-  - GTK+
+  - WinAPI (Auto add extension on file save supported)
+  - GTK
 
 ## Adding your own provider
-There is no way to add your own provider without recompiling library because class `NativeFileDialog` searches for providers inside library, but not outside  
-But if you really need to add it, just create new class in project that inherits interface `INativeDialogProvider` and add implementations
+You can use custom provider by setting property 'NativeFileDialog.Provider' or bundled providers with method 'NativeFileDialog.SetDefaultProvider()'.  
+To create custom provider create new class, inherit interface `INativeDialogProvider` and add implementations.
